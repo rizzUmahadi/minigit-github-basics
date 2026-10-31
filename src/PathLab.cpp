@@ -1,5 +1,9 @@
 #include "PathLab.hpp"
 
 namespace minigit {
-// Implement the focused behavior described by the active Issue.
+
+std::filesystem::path metadata_dir(const std::filesystem::path& root) {
+    return root / ".minigit";
+}
+
 } // namespace minigit
