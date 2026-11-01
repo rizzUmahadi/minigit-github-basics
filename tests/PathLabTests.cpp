@@ -10,5 +10,22 @@ int main() {
         return 1;
     }
     std::cout << "PathLab smoke check passed\n";
+
+    // Issue 1: ordinary root
+    std::filesystem::path result = minigit::metadataDirectory("project");
+    if (result != std::filesystem::path("project") / ".minigit") {
+        std::cerr << "ordinary root test failed\n";
+        return 1;
+    }
+    std::cout << "ordinary root test passed\n";
+
+    // Issue 1: nested root
+    std::filesystem::path nested = minigit::metadataDirectory("course/team/project");
+    if (nested != std::filesystem::path("course") / "team" / "project" / ".minigit") {
+        std::cerr << "nested root test failed\n";
+        return 1;
+    }
+    std::cout << "nested root test passed\n";
+
     return 0;
 }
