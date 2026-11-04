@@ -15,4 +15,9 @@ namespace minigit {
     // Returns true on success, false if creating the folder or writing fails.
     bool writeText(const std::filesystem::path& filePath, const std::string &text);
 
+    // Reads the whole file into text.
+    // Returns true on success, false if the file is missing or cannot be read.
+    // text is only changed when the read succeeds.
+    bool readText(const std::filesystem::path& filePath, std::string& text);
+
 } // namespace minigit

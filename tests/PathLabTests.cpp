@@ -102,5 +102,31 @@ int main() {
     }
     std::cout << "writeText failure test passed\n";
 
+    // Issue 4: readText reads back exactly what writeText wrote
+    std::filesystem::path readRoot = std::filesystem::temp_directory_path() / "readTextTest";
+    std::filesystem::path readFile = readRoot / "folder1" / "note.txt";
+    std::string readExpected = "first line\nsecond line\n";
+    std::string readActual;
+    if (!minigit::writeText(readFile, readExpected)) {
+        std::cerr << "readText test setup failed: writeText could not create the file\n";
+        std::filesystem::remove_all(readRoot);
+        return 1;
+    }
+    bool readOk = minigit::readText(readFile, readActual);
+    std::filesystem::remove_all(readRoot);
+    if (!readOk || readActual != readExpected) {
+        std::cerr << "readText did not return the exact file contents\n";
+        return 1;
+    }
+    std::cout << "readText exact contents test passed\n";
+
+    // Issue 4: readText reports a missing file (the folder was just removed)
+    std::string missingText;
+    if (minigit::readText(readRoot / "missing.txt", missingText)) {
+        std::cerr << "readText should return false for a missing file\n";
+        return 1;
+    }
+    std::cout << "readText missing file test passed\n";
+
     return 0;
 }
