@@ -83,7 +83,24 @@ int main() {
     }
     std::cout << "writeText nested temp directory test passed\n";
 
+    // Issue 3: writeText returns false when the parent path is a regular file
+    std::filesystem::path failRoot = std::filesystem::temp_directory_path() / "writeTextFailTest";
+    std::filesystem::remove_all(failRoot);
+    std::filesystem::create_directories(failRoot);
 
+    std::filesystem::path blocker = failRoot / "blocker";
+    {
+        std::ofstream blockerFile(blocker);
+        blockerFile << "I am a file, not a folder";
+    }
+
+    bool wrote = minigit::writeText(blocker / "x.txt", "should not be written");
+    std::filesystem::remove_all(failRoot);
+    if (wrote) {
+        std::cerr << "writeText should return false when the parent is a regular file\n";
+        return 1;
+    }
+    std::cout << "writeText failure test passed\n";
 
     return 0;
 }

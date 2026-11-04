@@ -24,11 +24,7 @@ namespace minigit {
                 return false;
             }
             file << text;
-            if(file.good()){
-                return true;
-            }
-            else{
-            return false; 
-            }
+            file.close();
+            return file.good();
     }
 } // namespace minigit
