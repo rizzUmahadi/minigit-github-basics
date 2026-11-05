@@ -1,5 +1,4 @@
 #include "RepositoryPaths.hpp"
-#include <utility>
 
 namespace minigit {
 
