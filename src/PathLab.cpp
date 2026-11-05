@@ -1,5 +1,6 @@
 #include "PathLab.hpp"
 #include <fstream>
+#include <iterator>
 
 namespace minigit {
     std::filesystem::path metadataDirectory(const std::filesystem::path& root){
@@ -26,5 +27,18 @@ namespace minigit {
             file << text;
             file.close();
             return file.good();
+    }
+
+    bool readText(const std::filesystem::path& filePath, std::string& text){
+        std::ifstream file(filePath);
+        if(!file.is_open()){
+            return false;
+        }
+        std::string contents((std::istreambuf_iterator<char>(file)), std::istreambuf_iterator<char>());
+        if(file.bad()){
+            return false;
+        }
+        text = contents;
+        return true;
     }
 } // namespace minigit
