@@ -1,4 +1,4 @@
-# Issue 4 Read text back and handle a missing file
+    # Issue 4 Read text back and handle a missing file
 
 ## Goal
 Add a small helper to read a text file and report a useful failure when the path does not exist or cannot be read.
