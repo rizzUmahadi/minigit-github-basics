@@ -13,6 +13,22 @@ int main() {
         std::cerr << "metadataRoot ordinary root test failed\n";
         return 1;
     }
+    if (paths.headFile() != root / ".minigit" / "HEAD") {
+        std::cerr << "headFile ordinary root test failed\n";
+        return 1;
+    }
+    if (paths.headFile().parent_path() != paths.metadataRoot()) {
+        std::cerr << "headFile parent ordinary root test failed\n";
+        return 1;
+    }
+    if (paths.indexFile() != root / ".minigit" / "index.txt") {
+        std::cerr << "indexFile ordinary root test failed\n";
+        return 1;
+    }
+    if (paths.indexFile().filename() != "index.txt") {
+        std::cerr << "indexFile filename ordinary root test failed\n";
+        return 1;
+    }
     std::cout << "RepositoryPaths ordinary root test passed\n";
 
     // RP-1: nested root
@@ -24,6 +40,22 @@ int main() {
     }
     if (nestedPaths.metadataRoot() != nestedRoot / ".minigit") {
         std::cerr << "metadataRoot nested root test failed\n";
+        return 1;
+    }
+    if (nestedPaths.headFile() != nestedRoot / ".minigit" / "HEAD") {
+        std::cerr << "headFile nested root test failed\n";
+        return 1;
+    }
+    if (nestedPaths.headFile().parent_path() != nestedPaths.metadataRoot()) {
+        std::cerr << "headFile parent nested root test failed\n";
+        return 1;
+    }
+    if (nestedPaths.indexFile() != nestedRoot / ".minigit" / "index.txt") {
+        std::cerr << "indexFile nested root test failed\n";
+        return 1;
+    }
+    if (nestedPaths.indexFile().filename() != "index.txt") {
+        std::cerr << "indexFile filename nested root test failed\n";
         return 1;
     }
     std::cout << "RepositoryPaths nested root test passed\n";
