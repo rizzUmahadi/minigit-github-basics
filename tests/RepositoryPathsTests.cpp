@@ -61,14 +61,23 @@ int main() {
     }
     std::cout << "RepositoryPaths nested root test passed\n";
     
-    // Test top-of-project file staging path
-    assert(nestedPaths.stageFile("notes.txt") == nestedRoot / ".minigit" / "stage" / "notes.txt");
+       // Test top-of-project file staging path
+    if (nestedPaths.stageFile("notes.txt") != nestedRoot / ".minigit" / "stage" / "notes.txt") {
+        std::cerr << "stageFile top-of-project path test failed\n";
+        return 1;
+    }
 
     // Test file in sub-folder staging path
-    assert(nestedPaths.stageFile("docs/notes.txt") == nestedRoot / ".minigit" / "stage" / "docs" / "notes.txt");
+    if (nestedPaths.stageFile("docs/notes.txt") != nestedRoot / ".minigit" / "stage" / "docs" / "notes.txt") {
+        std::cerr << "stageFile sub-folder path test failed\n";
+        return 1;
+    }
 
     // Test filename extraction from staged path
-    assert(nestedPaths.stageFile("docs/notes.txt").filename() == "notes.txt");
+    if (nestedPaths.stageFile("docs/notes.txt").filename() != "notes.txt") {
+        std::cerr << "stageFile filename extraction test failed\n";
+        return 1;
+    }
 
     return 0;
 }
