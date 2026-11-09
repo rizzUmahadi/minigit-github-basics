@@ -1,5 +1,6 @@
 #include "RepositoryPaths.hpp"
 #include <iostream>
+#include <cassert>
 
 int main() {
     // RP-1: ordinary root
@@ -59,6 +60,15 @@ int main() {
         return 1;
     }
     std::cout << "RepositoryPaths nested root test passed\n";
+    
+    // Test top-of-project file staging path
+    assert(nestedPaths.stageFile("notes.txt") == nestedRoot / ".minigit" / "stage" / "notes.txt");
+
+    // Test file in sub-folder staging path
+    assert(nestedPaths.stageFile("docs/notes.txt") == nestedRoot / ".minigit" / "stage" / "docs" / "notes.txt");
+
+    // Test filename extraction from staged path
+    assert(nestedPaths.stageFile("docs/notes.txt").filename() == "notes.txt");
 
     return 0;
 }
