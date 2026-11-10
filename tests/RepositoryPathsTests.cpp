@@ -1,6 +1,18 @@
 #include "RepositoryPaths.hpp"
 #include <iostream>
 #include <cassert>
+#include <stdexcept>
+#include <string>
+
+// Returns true if safeRelativeFile throws std::runtime_error for this argument.
+bool rejects(const minigit::RepositoryPaths& paths, const std::string& argument) {
+    try {
+        paths.safeRelativeFile(argument);
+    } catch (const std::runtime_error&) {
+        return true;
+    }
+    return false;
+}
 
 int main() {
     // RP-1: ordinary root
@@ -78,6 +90,31 @@ int main() {
         std::cerr << "stageFile filename extraction test failed\n";
         return 1;
     }
+
+      // RP-5: accepted paths return a clean relative path
+    if (paths.safeRelativeFile("notes.txt") != "notes.txt" ||
+        paths.safeRelativeFile("docs/notes.txt") != "docs/notes.txt" ||
+        paths.safeRelativeFile("docs/./notes.txt") != "docs/notes.txt" ||
+        paths.safeRelativeFile("docs/../notes.txt") != "notes.txt" ||
+        paths.safeRelativeFile("my..notes.txt") != "my..notes.txt") {
+        std::cerr << "safeRelativeFile accepted paths test failed\n";
+        return 1;
+    }
+    std::cout << "safeRelativeFile accepted paths test passed\n";
+
+    // RP-5: unsafe paths must throw std::runtime_error
+    if (!rejects(paths, "") ||
+        !rejects(paths, ".") ||
+        !rejects(paths, "/notes.txt") ||
+        !rejects(paths, "../notes.txt") ||
+        !rejects(paths, "docs/../../notes.txt") ||
+        !rejects(paths, ".minigit/HEAD") ||
+        !rejects(paths, ".git/config") ||
+        !rejects(paths, "docs/.minigit/x")) {
+        std::cerr << "safeRelativeFile failed to reject an unsafe path\n";
+        return 1;
+    }
+    std::cout << "safeRelativeFile rejected paths test passed\n";
 
     return 0;
 }
