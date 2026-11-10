@@ -3,7 +3,8 @@
 #include <cassert>
 #include <stdexcept>
 #include <string>
-
+#include <fstream>
+#include <system_error>
 // Returns true if safeRelativeFile throws std::runtime_error for this argument.
 bool rejects(const minigit::RepositoryPaths& paths, const std::string& argument) {
     try {
@@ -134,5 +135,43 @@ int main() {
     }
     std::cout << "safeRelativeFile rejected paths test passed\n";
 
+        // PR-6: symbolic links are rejected
+    const std::filesystem::path linkRoot = std::filesystem::temp_directory_path() / "minigit_symlink_test";
+    std::error_code linkError;
+    std::filesystem::remove_all(linkRoot, linkError);
+    std::filesystem::create_directories(linkRoot / "docs");
+    std::ofstream(linkRoot / "real.txt") << "real\n";
+    std::ofstream(linkRoot / "docs" / "notes.txt") << "notes\n";
+    const minigit::RepositoryPaths linkPaths(linkRoot);
+
+    std::error_code fileLinkError;
+    std::error_code folderLinkError;
+    std::filesystem::create_symlink("real.txt", linkRoot / "file_link.txt", fileLinkError);
+    std::filesystem::create_directory_symlink("docs", linkRoot / "folder_link", folderLinkError);
+
+    bool linkTestFailed = false;
+    if (fileLinkError || folderLinkError) {
+        std::cout << "symbolic link test skipped\n";
+    } else {
+        if (rejects(linkPaths, "real.txt")) {
+            std::cerr << "symbolic link test failed: real file was rejected\n";
+            linkTestFailed = true;
+        }
+        if (!rejects(linkPaths, "file_link.txt")) {
+            std::cerr << "symbolic link test failed: file link was accepted\n";
+            linkTestFailed = true;
+        }
+        if (!rejects(linkPaths, "folder_link/notes.txt")) {
+            std::cerr << "symbolic link test failed: file through folder link was accepted\n";
+            linkTestFailed = true;
+        }
+        if (!linkTestFailed) {
+            std::cout << "symbolic link test passed\n";
+        }
+    }
+    std::filesystem::remove_all(linkRoot, linkError);
+    if (linkTestFailed) {
+        return 1;
+    }
     return 0;
 }

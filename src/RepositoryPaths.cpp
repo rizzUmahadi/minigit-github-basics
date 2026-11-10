@@ -1,5 +1,6 @@
 #include "RepositoryPaths.hpp"
 #include <stdexcept>
+#include <system_error>
 namespace minigit {
 
 RepositoryPaths::RepositoryPaths(std::filesystem::path projectRoot) {
@@ -47,6 +48,15 @@ std::string RepositoryPaths::safeRelativeFile(const std::string& argument) const
         throw std::runtime_error("path points into repository data");
     }
 }
+        // PR-6: reject the path if any part that exists is a symbolic link
+    std::filesystem::path current = projectRoot_;
+    for (const std::filesystem::path& part : path) {
+        current /= part;
+        std::error_code error;
+        if (std::filesystem::is_symlink(std::filesystem::symlink_status(current, error))) {
+            throw std::runtime_error("path goes through a symbolic link");
+        }
+    }
     return path.generic_string();
 }
 
