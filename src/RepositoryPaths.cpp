@@ -1,5 +1,5 @@
 #include "RepositoryPaths.hpp"
-
+#include <stdexcept>
 namespace minigit {
 
 RepositoryPaths::RepositoryPaths(std::filesystem::path projectRoot) {
@@ -31,6 +31,23 @@ std::filesystem::path RepositoryPaths::commitDirectory(const std::string& id) co
 
 std::filesystem::path RepositoryPaths::committedFile(const std::string& id, const std::string& path) const {
     return commitDirectory(id) / "files" / path;
+}
+
+std::string RepositoryPaths::safeRelativeFile(const std::string& argument) const {
+    std::filesystem::path path(argument);
+    if(argument.empty() || path.has_root_path()){
+        throw std::runtime_error("invalid path, must be relative to the project");
+    }
+    path = path.lexically_normal();
+    if (path.empty() || path == "." || *path.begin() == "..") {
+        throw std::runtime_error("not a valid file in the project");
+}
+ for (const std::filesystem::path& part : path) {
+    if (part == ".git" || part == ".minigit") {
+        throw std::runtime_error("path points into repository data");
+    }
+}
+    return path.generic_string();
 }
 
 } // namespace minigit
