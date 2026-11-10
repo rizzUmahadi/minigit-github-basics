@@ -90,6 +90,24 @@ int main() {
         std::cerr << "stageFile filename extraction test failed\n";
         return 1;
     }
+    // RP-4: commit directory
+    if (nestedPaths.commitDirectory("3") != nestedRoot / ".minigit" / "commits" / "3") {
+        std::cerr << "commitDirectory test failed\n";
+        return 1;
+    }
+
+    // RP-4: committed file in a sub-folder
+    if (nestedPaths.committedFile("3", "docs/notes.txt") != nestedRoot / ".minigit" / "commits" / "3" / "files" / "docs" / "notes.txt") {
+        std::cerr << "committedFile sub-folder test failed\n";
+        return 1;
+    }
+
+    // RP-4: committedFile reuses commitDirectory
+    if (nestedPaths.committedFile("3", "a.txt").parent_path() != nestedPaths.commitDirectory("3") / "files") {
+        std::cerr << "committedFile parent path test failed\n";
+        return 1;
+    }
+    std::cout << "RepositoryPaths commit path tests passed\n";
 
       // RP-5: accepted paths return a clean relative path
     if (paths.safeRelativeFile("notes.txt") != "notes.txt" ||
