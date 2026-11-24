@@ -281,5 +281,53 @@ int main()
     std::cout << "createDirectories tests passed\n";
     
     return 0;
+
+       // FS-WRITEBYTES: empty data and unrelated files
+    const auto emptyRoot = std::filesystem::temp_directory_path() /
+        ("minigit-write-empty-test-" +
+         std::to_string(std::chrono::steady_clock::now().time_since_epoch().count()));
+    try {
+        std::filesystem::create_directories(emptyRoot);
+
+        // An unrelated file that must stay untouched
+        const auto unrelated = emptyRoot / "unrelated.bin";
+        const std::vector<char> unrelatedData = {'k', '\0', static_cast<char>(0xFF), '\r', '\n'};
+        fileSystem.writeBytes(unrelated, unrelatedData);
+
+        // Empty data creates a 0-byte file
+        const auto emptyTarget = emptyRoot / "HEAD";
+        fileSystem.writeBytes(emptyTarget, {});
+        if (!fileSystem.fileExists(emptyTarget) || !fileSystem.readBytes(emptyTarget).empty()) {
+            std::cerr << "writeBytes did not create an empty file for empty data\n";
+            std::filesystem::remove_all(emptyRoot);
+            return 1;
+        }
+
+        // Empty data replaces existing content completely
+        const auto existing = emptyRoot / "index.txt";
+        const std::vector<char> oldData = {'o', 'l', 'd', '\0', 'd', 'a', 't', 'a'};
+        fileSystem.writeBytes(existing, oldData);
+        fileSystem.writeBytes(existing, {});
+        if (!fileSystem.readBytes(existing).empty()) {
+            std::cerr << "writeBytes left old bytes behind when writing empty data\n";
+            std::filesystem::remove_all(emptyRoot);
+            return 1;
+        }
+
+        // Unrelated file is unchanged
+        if (!fileSystem.fileExists(unrelated) || fileSystem.readBytes(unrelated) != unrelatedData) {
+            std::cerr << "writeBytes changed or removed an unrelated file\n";
+            std::filesystem::remove_all(emptyRoot);
+            return 1;
+        }
+    } catch (const std::exception& error) {
+        std::filesystem::remove_all(emptyRoot);
+        std::cerr << "writeBytes empty data test failed: " << error.what() << '\n';
+        return 1;
+    }
+    std::filesystem::remove_all(emptyRoot);
+    std::cout << "writeBytes empty data tests passed\n"; 
+   
+    return 0;
 }
 
