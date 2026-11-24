@@ -12,5 +12,6 @@ public:
     bool fileExists(const std::filesystem::path& path) const;
     void copy(const std::filesystem::path& source, const std::filesystem::path& target) const;
     void createDirectories(const std::filesystem::path& path) const;
+    void createFile(const std::filesystem::path& path) const;
 };
 } // namespace minigit
