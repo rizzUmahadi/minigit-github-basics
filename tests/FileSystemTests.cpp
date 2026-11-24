@@ -320,13 +320,32 @@ int main()
             std::filesystem::remove_all(fileRoot);
             return 1;
         }
+                // Throws when the path is an existing folder, and the folder is left alone
+        const auto folderPath = fileRoot / "a-folder";
+        std::filesystem::create_directories(folderPath);
+        threw = false;
+        try {
+            fileSystem.createFile(folderPath);
+        } catch (const std::ios_base::failure&) {
+            threw = true;
+        }
+        if (!threw || !std::filesystem::is_directory(folderPath)) {
+            std::cerr << "createFile should throw when the path is a directory\n";
+            std::filesystem::remove_all(fileRoot);
+            return 1;
+        }
+        
     } catch (const std::exception& error) {
         std::filesystem::remove_all(fileRoot);
         std::cerr << "createFile test failed: " << error.what() << '\n';
         return 1;
     }
+
+    
     std::filesystem::remove_all(fileRoot);
     std::cout << "createFile tests passed\n";
+    
+
     
     return 0;
 }
