@@ -327,6 +327,74 @@ int main()
     std::filesystem::remove_all(emptyRoot);
     std::cout << "writeBytes empty data tests passed\n"; 
    
+    
+        // FS-6: createFile
+    const auto fileRoot = std::filesystem::temp_directory_path() /
+        ("minigit-create-file-test-" +
+         std::to_string(std::chrono::steady_clock::now().time_since_epoch().count()));
+    try {
+        std::filesystem::create_directories(fileRoot);
+
+        // Creates an empty file when the parent folder exists
+        const auto newFile = fileRoot / "HEAD";
+        fileSystem.createFile(newFile);
+        if (!fileSystem.fileExists(newFile) || !fileSystem.readBytes(newFile).empty()) {
+            std::cerr << "createFile did not create an empty file\n";
+            std::filesystem::remove_all(fileRoot);
+            return 1;
+        }
+
+        // Leaves an existing file's content unchanged
+        const auto existing = fileRoot / "existing.txt";
+        const std::vector<char> keepMe = {'k', 'e', 'e', 'p', ' ', 'm', 'e'};
+        fileSystem.writeBytes(existing, keepMe);
+        fileSystem.createFile(existing);
+        if (fileSystem.readBytes(existing) != keepMe) {
+            std::cerr << "createFile changed an existing file\n";
+            std::filesystem::remove_all(fileRoot);
+            return 1;
+        }
+
+        // Throws when the parent folder is missing, and creates nothing
+        const auto missingParent = fileRoot / "missing" / "index.txt";
+        bool threw = false;
+        try {
+            fileSystem.createFile(missingParent);
+        } catch (const std::ios_base::failure&) {
+            threw = true;
+        }
+        if (!threw || std::filesystem::exists(missingParent)) {
+            std::cerr << "createFile should throw when the parent folder is missing\n";
+            std::filesystem::remove_all(fileRoot);
+            return 1;
+        }
+                // Throws when the path is an existing folder, and the folder is left alone
+        const auto folderPath = fileRoot / "a-folder";
+        std::filesystem::create_directories(folderPath);
+        threw = false;
+        try {
+            fileSystem.createFile(folderPath);
+        } catch (const std::ios_base::failure&) {
+            threw = true;
+        }
+        if (!threw || !std::filesystem::is_directory(folderPath)) {
+            std::cerr << "createFile should throw when the path is a directory\n";
+            std::filesystem::remove_all(fileRoot);
+            return 1;
+        }
+        
+    } catch (const std::exception& error) {
+        std::filesystem::remove_all(fileRoot);
+        std::cerr << "createFile test failed: " << error.what() << '\n';
+        return 1;
+    }
+
+    
+    std::filesystem::remove_all(fileRoot);
+    std::cout << "createFile tests passed\n";
+    
+
+    
     return 0;
 }
 
