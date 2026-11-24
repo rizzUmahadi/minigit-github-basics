@@ -63,4 +63,14 @@ void FileSystem::createDirectories(const std::filesystem::path& path) const {
     }
 }
 
+void FileSystem::createFile(const std::filesystem::path& path) const {
+    if (std::filesystem::is_directory(path)) {
+        throw std::ios_base::failure("Cannot create file: path is a directory");
+    }
+    std::ofstream file(path, std::ios::binary | std::ios::app);
+    if (!file.is_open()) {
+        throw std::ios_base::failure("Unable to create file");
+    }
+}
+
 } // namespace minigit
