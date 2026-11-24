@@ -1,7 +1,7 @@
 #include "CommandLineApp.hpp"
-
-#include <exception>
+#include "MiniGitRepository.hpp"
 #include <iostream>
+#include <exception>
 #include <string>
 #include <utility>
 
@@ -19,7 +19,13 @@ int CommandLineApp::run(int argc, char* argv[]) const {
 
         const std::string command = argv[1];
 
-        // TODO(#48): route "init" to MiniGitRepository::init() once it is merged.
+                if (command == "init") {
+            MiniGitRepository repository(root_);
+            repository.init();
+            std::cout << "Initialized empty MiniGit repository in "
+                      << (root_ / ".minigit").string() << "\n";
+            return 0;
+        }
 
         std::cerr << "Error: unknown command '" << command << "'\n";
         return 1;
