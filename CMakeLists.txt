@@ -32,4 +32,8 @@ if(BUILD_TESTING)
     add_executable(command_line_app_tests tests/CommandLineAppTests.cpp)
     target_link_libraries(command_line_app_tests PRIVATE minigit_paths)
     add_test(NAME command_line_app_tests COMMAND command_line_app_tests)
+
+    add_executable(minigit_init_integration_test tests/MiniGitInitIntegrationTest.cpp)
+    add_dependencies(minigit_init_integration_test minigit)
+    add_test(NAME minigit_init_integration_test COMMAND minigit_init_integration_test $<TARGET_FILE:minigit>)
 endif()
