@@ -279,10 +279,9 @@ int main()
     }
     std::filesystem::remove_all(dirRoot);
     std::cout << "createDirectories tests passed\n";
-    
-    return 0;
 
-       // FS-WRITEBYTES: empty data and unrelated files
+       
+    // FS-WRITEBYTES: empty data and unrelated files
     const auto emptyRoot = std::filesystem::temp_directory_path() /
         ("minigit-write-empty-test-" +
          std::to_string(std::chrono::steady_clock::now().time_since_epoch().count()));
