@@ -1,6 +1,8 @@
 #include "CommandLineApp.hpp"
 
+#include <chrono>
 #include <filesystem>
+#include <fstream>
 #include <iostream>
 #include <sstream>
 #include <string>
@@ -54,9 +56,10 @@ int main() {
     }
     std::cout << "Unknown-command test passed\n";
 
-    // init: first run succeeds, second run fails with Error:
+    // init in an empty folder, then again on a valid repository, then on a damaged one
     {
-        const fs::path root = fs::temp_directory_path() / "cla_test_init";
+        const fs::path root = fs::temp_directory_path() /
+            ("cla_test_init_" + std::to_string(std::chrono::steady_clock::now().time_since_epoch().count()));
         fs::remove_all(root);
         fs::create_directories(root);
 
@@ -64,18 +67,46 @@ int main() {
         char* argv[] = {program, command};
         std::string errorOutput;
 
-        if (runWithArgs(root, 2, argv, errorOutput) != 0) {
-            std::cerr << "init test failed: first init did not return 0\n";
+        // Empty folder: returns 0 and creates the layout
+        if (runWithArgs(root, 2, argv, errorOutput) != 0 || !errorOutput.empty()) {
+            std::cerr << "init test failed: first init did not return 0 cleanly\n";
             fs::remove_all(root);
             return 1;
         }
-        if (!fs::is_directory(root / ".minigit")) {
-            std::cerr << "init test failed: .minigit was not created\n";
+        if (!fs::is_directory(root / ".minigit" / "stage") ||
+            !fs::is_directory(root / ".minigit" / "commits") ||
+            !fs::exists(root / ".minigit" / "HEAD") ||
+            !fs::exists(root / ".minigit" / "index.txt")) {
+            std::cerr << "init test failed: .minigit layout was not created\n";
             fs::remove_all(root);
             return 1;
         }
+
+        // Valid repository already there: prints a message, returns 0, changes nothing
+        {
+            std::ofstream head(root / ".minigit" / "HEAD", std::ios::binary);
+            head << "1";
+        }
+        if (runWithArgs(root, 2, argv, errorOutput) != 0 || !errorOutput.empty()) {
+            std::cerr << "init test failed: init on a valid repository should return 0 without an error\n";
+            fs::remove_all(root);
+            return 1;
+        }
+        if (fs::file_size(root / ".minigit" / "HEAD") != 1) {
+            std::cerr << "init test failed: init on a valid repository changed HEAD\n";
+            fs::remove_all(root);
+            return 1;
+        }
+
+        // Damaged .minigit (HEAD missing): prints Error:, returns 1, does not recreate HEAD
+        fs::remove(root / ".minigit" / "HEAD");
         if (runWithArgs(root, 2, argv, errorOutput) != 1 || !startsWithError(errorOutput)) {
-            std::cerr << "init test failed: second init should print Error: and return 1\n";
+            std::cerr << "init test failed: damaged .minigit should print Error: and return 1\n";
+            fs::remove_all(root);
+            return 1;
+        }
+        if (fs::exists(root / ".minigit" / "HEAD")) {
+            std::cerr << "init test failed: init recreated HEAD in a damaged .minigit\n";
             fs::remove_all(root);
             return 1;
         }

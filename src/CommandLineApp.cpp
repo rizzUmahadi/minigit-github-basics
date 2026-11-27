@@ -19,11 +19,19 @@ int CommandLineApp::run(int argc, char* argv[]) const {
 
         const std::string command = argv[1];
 
-                if (command == "init") {
+        if (command == "init") {
             MiniGitRepository repository(root_);
+            const std::string metadataDir = (root_ / ".minigit").string();
+            if (repository.isInitialized()) {
+                // A valid repository is already here: say so and change nothing.
+                std::cout << "MiniGit repository already exists in " << metadataDir
+                          << " (nothing changed)\n";
+                return 0;
+            }
+            // Empty folder: creates .minigit. Damaged .minigit: init() throws and
+            // the catch below prints "Error: ..." and returns 1.
             repository.init();
-            std::cout << "Initialized empty MiniGit repository in "
-                      << (root_ / ".minigit").string() << "\n";
+            std::cout << "Initialized empty MiniGit repository in " << metadataDir << "\n";
             return 0;
         }
 

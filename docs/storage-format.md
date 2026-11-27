@@ -26,9 +26,14 @@ When `minigit init` runs in a fresh directory, MiniGit creates a `.minigit/` dir
 | `stage/` | Staging area holding copies of staged files prior to committing. | Created empty by `init`; populated by `add` and cleared/updated during `commit`. |
 | `commits/` | Stores saved commit snapshots and metadata. | Created empty by `init`; written to by `commit` and read by `log` / `status`. |
 
-## 3. Re-initializing an Existing Repository
+## 3. What `minigit init` does in each case
 
-If `minigit init` is run when `.minigit/` already exists:
+| Case | Output | Exit code | Changes on disk |
+| :--- | :--- | :--- | :--- |
+| Empty folder (no `.minigit/`) | `Initialized empty MiniGit repository in <root>/.minigit` | 0 | Creates `.minigit/`, `stage/`, `commits/`, and empty `HEAD` and `index.txt` |
+| Valid repository already there (`.minigit/`, `HEAD` and `index.txt` all present) | `MiniGit repository already exists in <root>/.minigit (nothing changed)` | 0 | None |
+| Damaged `.minigit/` (exists, but `HEAD` or `index.txt` is missing) | `Error: damaged repository: ...` | 1 | None. MiniGit never overwrites or repairs existing repository data |
 
-- **Valid repository already exists** (`.minigit/`, `HEAD`, and `index.txt` are all present): `MiniGitRepository::init()` throws a `std::runtime_error` (reported as an error by the CLI) and leaves all existing files and directories completely unchanged.
-- **Damaged or partial `.minigit/`** (e.g., `.minigit/` exists without `HEAD` or `index.txt`): `isInitialized()` evaluates to `false`, and running `init` reports an error without overwriting existing repository data.
+`MiniGitRepository::isInitialized()` is true only in the "valid repository" case. `MiniGitRepository::init()` throws `std::runtime_error` whenever `.minigit/` already exists, so it can never overwrite data. `CommandLineApp::run()` checks `isInitialized()` first to print the friendly message, and turns any exception into `Error: <message>` with exit code 1.
+
+Any other command (for example `minigit status`) prints `Error: unknown command ...` and exits with 1 until its milestone is built. Running `minigit` with no command prints `Error: no command given ...` and exits with 1.

@@ -23,7 +23,7 @@ void MiniGitRepository::init() {
 
     std::error_code error;
     if (std::filesystem::exists(paths_.metadataRoot(), error)) {
-        throw std::runtime_error("damaged .minigit found; refusing to overwrite it");
+        throw std::runtime_error("damaged repository: .minigit exists but HEAD or index.txt is missing; nothing was changed");
     }
 
     fileSystem_.createDirectories(paths_.metadataRoot());
