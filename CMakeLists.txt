@@ -29,4 +29,8 @@ if(BUILD_TESTING)
     add_executable(command_line_app_tests tests/CommandLineAppTests.cpp)
     target_link_libraries(command_line_app_tests PRIVATE minigit_paths)
     add_test(NAME command_line_app_tests COMMAND command_line_app_tests)
+
+    add_executable(interface_headers_tests tests/InterfaceHeadersTests.cpp)
+    target_link_libraries(interface_headers_tests PRIVATE minigit_paths)
+    add_test(NAME interface_headers_tests COMMAND interface_headers_tests)
 endif()
